@@ -1,5 +1,5 @@
 # Feature Engineering (BCG X Data Science Project Part 2)
-![Introductory Picture](Feature_Engieering.png)
+![Introductory Picture](Feature_Engineering.png)
 ## Introduction
 This is Part 2 of a project from the [BCG X Data Science micro-internship](https://www.theforage.com/simulations/bcg/data-science-ccdz). The Boston Consulting Group (BCG) is an American global consulting firm that  partners with leaders in business and society to tackle their most important challenges. It is one of the world's 3 largest consulting firms along with McKinsey & Company and Bain & Company. BCG X is a new initiative from BCG that combines the firm's consulting expertise with tech building and design.
 
