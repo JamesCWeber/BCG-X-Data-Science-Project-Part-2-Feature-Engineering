@@ -102,7 +102,7 @@ price_df['price_off_peak_total'] = price_df['price_off_peak_var'] + price_df['pr
 price_df['price_peak_total'] = price_df['price_peak_var'] + price_df['price_peak_fix']
 price_df['price_mid_peak_total'] = price_df['price_mid_peak_var'] + price_df['price_mid_peak_fix']
 ```
-Three columns are added to the price_df dataframe: 
+Three features are added to the price_df dataframe: 
 * price_off_peak_total - The price of energy and power during off peak hours.
 * price_peak_total - The price of energy and power during peak hours.
 * price_mid_peak_total - The price of energy and power during MID peak hours.
@@ -142,7 +142,7 @@ client_df = pd.merge(client_df,
                      on = 'id')
 ```
 
-Nine columns are added to the client_df dataframe:
+Nine features are added to the client_df dataframe:
 * variance_1y_off_peak_var - The price variance of energy during off peak hours for 1 year.
 * variance_1y_peak_var - The price variance of energy during peak hours for 1 year.
 * variance_1y_mid_peak_var - The price variance of energy during mid peak hours for 1 year.
@@ -190,7 +190,7 @@ client_df = pd.merge(client_df,
                      price_variance_6months, 
                      on = 'id')
 ```
-Nine columns are added to the client_df dataframe:
+Nine features are added to the client_df dataframe:
 * variance_6m_off_peak_var - The price variance of energy during off peak hours for the last 6 months of the year.
 * variance_6m_peak_var - The price variance of energy during peak hours for the last 6 months of the year.
 * variance_6m_mid_peak_var - The price variance of energy during mid peak hours for the last 6 months of the year.
@@ -201,12 +201,88 @@ Nine columns are added to the client_df dataframe:
 * variance_6m_peak_total - The price variance of both energy and power during peak hours for the last 6 months of the year.
 * variance_6m_mid_peak_total - The price variance of both energy and power during mid peak hours for the last 6 months of the year.
 
-**In summary we:**
+**In summary, we:**
 * Calculated the price variance of energy between different peak hours (off peak, peak, and mid peak) for 1 year.
 * Calculated the price variance of power between different peak hours (off peak, peak, and mid peak) for 1 year.
 * Calculated the price variance of energy and power between different peak hours (off peak, peak, and mid peak) for 1 year.
 * Repeated the previous price variance calculations using the last 6 months of the year instead of the whole year.
-* The results of the variance calculations were added to the client_dataframe. A total of 18 columns were added.
+* The results of the variance calculations were added to the client_df dataframe. The client_df dataframe gains 18 new features.
 
 ### 3. Difference in Price: Beginning of Year to End of Year
 Another metric we can use to determine if price sensitivity may be a cause of churn is to determine the difference between the price of power at the end of the year and the price at the beginning of the year. **This will give us the price range for each of PowerCo's customers.**
+
+The price_df dataframe contains more information than we need. We'll create a dataframe called monthly_price_by_id which will contain data on customer id, price date, and the price of energy and power during off peak hours.
+```
+# Create a dataframe that contains the customer ID, price dates, and the off peak prices.
+# Use the .reset_index() command to insert the outputs into a dataframe and reset the index column.
+
+monthly_price_by_id = price_df.groupby(['id', 'price_date']).agg({'price_off_peak_var': 'mean', 
+                                                                  'price_off_peak_fix': 'mean'}).reset_index()
+```
+We will then extract data from the monthly_price_by_id dataframe where the price date is 2015-01-01 (beginning of the year) and 2015-12-01 (end of the year).
+``
+# Create dataframes for the price of power at the beginning of the year and the end of the year.
+# Use the .groupby() command to group the data by the id column.
+# Use the .first() and .last() command to select the first and last datapoint in the group.
+# Use the .reset_index() command to insert the outputs into a dataframe and reset the index column.
+
+beginning_of_year_prices = monthly_price_by_id.groupby('id').first().reset_index()
+end_of_year_prices = monthly_price_by_id.groupby('id').last().reset_index()
+
+# Remove the price_date columns from the beginning_of_year_prices and end_of_year_prices dataframes.
+# Use the .drop() command to delete a column.
+
+beginning_of_year_prices = beginning_of_year_prices.drop(columns = 'price_date')
+end_of_year_prices = end_of_year_prices.drop(columns = 'price_date')
+
+# Rename the price_off_peak_var and price_off_peak_fix columns.
+# Use the .rename() command to rename columns.
+
+beginning_of_year_prices.rename(columns = {'price_off_peak_var':'beginning_year_price_energy', 
+                                           'price_off_peak_fix':'beginning_year_price_power'}, 
+                                inplace = True)
+end_of_year_prices.rename(columns = {'price_off_peak_var':'ending_year_price_energy', 
+                                     'price_off_peak_fix':'ending_year_price_power'}, 
+                          inplace = True)
+
+# Merge the end_of_year_prices and beginning_of_year_price into a single dataframe using the .merge() command.
+# Merge the dataframes using the id column.
+
+price_differences = pd.merge(end_of_year_prices, beginning_of_year_prices, on = 'id')
+``
+Then we will calculate the differences in the price of energy and power from the end of the year to the beginning of the year.
+```
+# Calcualte the differences between the beginnig of year prices and end of year prices.
+
+price_differences['off_peak_price_difference_energy'] = price_differences['ending_year_price_energy'] - price_differences ['beginning_year_price_energy']
+price_differences['off_peak_price_difference_power'] = price_differences['ending_year_price_power'] - price_differences ['beginning_year_price_power']
+
+# Keep only the id, off_peak_price_difference_energy, and off_peak_price_difference_power columns.
+
+price_differences = price_differences[['id', 
+                                       'off_peak_price_difference_energy', 
+                                       'off_peak_price_difference_power']]
+```
+Lastly, we will merge our finding to the client_df dataframe.
+```
+# Merge the price_differences dataframe to the client_df dataframe.
+# Merge the dataframes on the id column.
+
+client_df = pd.merge(client_df, 
+                     price_differences, 
+                     on = 'id')
+```
+Two features are added to the client_df dataframe:
+* off_peak_price_difference_energy - The difference in price of energy from the beginning of the year to the end of the year.
+* off_peak_price_difference_power - The difference in price of power from the beginning of the year to the end of the year.
+
+**In summary, we:**
+* Extracted the data we need from the price_df dataframe (contains data on the price of energy and power during different peak hours for every month) into another dataframe called monthly_price_by_id.
+* The monthly_price_by_id dataframe contains data on customer id, price date, and the price of energy and power during off peak hours.
+* Extracted data from the monthly_price_by_id dataframe so that only data from price dates 2015-01-01 and 2015-12-01 are contained.
+* Subtracted the price of energy and power at the end of the year with the price of energy and power at the beginning of the year.
+* The results of the price difference calculations were added to the client_df dataframe. The client_df datafame gains 2 new features.
+* The client_df dataframe gains a total of 20 new features.
+
+### 4. Avergae Price Across Peak Hours
+
