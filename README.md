@@ -84,4 +84,129 @@ import pandas as pd
 client_df = pd.read_csv(r'C:/Users/jwebe/Desktop/client_data (1).csv')
 price_df = pd.read_csv(r'C:/Users/jwebe/Desktop/price_data (1).csv')
 ```
-### 2. 
+
+### 2. Price Variance Between Peak Hours
+When speaking wtth the Associate Director of the Data Science team, one hypothesis for PowerCo's customer churn is price sensitivity, the degree to which demand changes when the cost of a product or service changes. However, **there are no features in the raw data that reflect price change. We will use feature engineering techniques to create features that reflect price change.**
+
+**One metric related to price change is the variance of price throughout the year between peak hours.** Variance is the spread between numbers in a dataset. **Variance will give us an inidcation of how much the price has changed over a year. We will also include the variance for the last 6 months in the year.**
+
+The price_df dataframe (which contains the price data) separate the price of energy and the price of power and divide them between various peak hours (off peak, peak, and mid peak). The code below will add the 2 prices and create a new column for total price during off peak, peak, and mid peak hours.
+
+```
+# The price_df dataframe contains data for the price of energy and power for each customer.
+# The price changes every month and during different peak periods (peak, off peak, and mid peak).
+# Along with finding the variance in price for energy and power, we should also find the variance in price for the total.
+# Create columns that contain total price by adding energy price with power price.
+
+price_df['price_off_peak_total'] = price_df['price_off_peak_var'] + price_df['price_off_peak_fix']
+price_df['price_peak_total'] = price_df['price_peak_var'] + price_df['price_peak_fix']
+price_df['price_mid_peak_total'] = price_df['price_mid_peak_var'] + price_df['price_mid_peak_fix']
+```
+Three columns are added to the price_df dataframe: 
+* price_off_peak_total - The price of energy and power during off peak hours.
+* price_peak_total - The price of energy and power during peak hours.
+* price_mid_peak_total - The price of energy and power during MID peak hours.
+
+The code below will calculate the price variance throughout the year between peak hours and will add columns to the client_df (dataframe containing client data) for each variance calculated.
+
+```
+# Use the .groupby() command to group the data in the price_df dataframe by the id column.
+# Use the .agg() command to use multiple aggregate functions (var) across multiple columns.
+# Use the .reset_index() command to insert the outputs into a dataframe and reset the index column.
+
+price_variance_1year = price_df.groupby('id').agg({'price_off_peak_var': 'var', 
+                                                   'price_peak_var': 'var', 
+                                                   'price_mid_peak_var': 'var', 
+                                                   'price_off_peak_fix': 'var', 
+                                                   'price_peak_fix': 'var', 
+                                                   'price_mid_peak_fix': 'var', 
+                                                   'price_off_peak_total': 'var', 
+                                                   'price_peak_total': 'var', 
+                                                   'price_mid_peak_total': 'var'}).reset_index()
+
+# Use the .rename() command to rename columns.
+
+price_variance_1year.rename(columns = {'price_off_peak_var':'variance_1y_off_peak_var', 
+                                       'price_peak_var':'variance_1y_peak_var', 
+                                       'price_mid_peak_var':'variance_1y_mid_peak_var', 
+                                       'price_off_peak_fix':'variance_1y_off_peak_fix', 
+                                       'price_peak_fix':'variance_1y_peak_fix', 
+                                       'price_mid_peak_fix':'variance_1y_mid_peak_fix', 
+                                       'price_off_peak_total':'variance_1y_off_peak_total', 
+                                       'price_peak_total':'variance_1y_peak_total', 
+                                       'price_mid_peak_total':'variance_1y_mid_peak_total'}, 
+                                       inplace = True)
+
+client_df = pd.merge(client_df, 
+                     price_variance_1year, 
+                     on = 'id')
+```
+
+Nine columns are added to the client_df dataframe:
+* variance_1y_off_peak_var - The price variance of energy during off peak hours for 1 year.
+* variance_1y_peak_var - The price variance of energy during peak hours for 1 year.
+* variance_1y_mid_peak_var - The price variance of energy during mid peak hours for 1 year.
+* variance_1y_off_peak_fix - The price variance of power during off peak hours for 1 year.
+* variance_1y_peak_fix - The price variance of power during peak hours for 1 year.
+* variance_1y_mid_peak_fix - The price variance of power during mid peak hours for 1 year.
+* variance_1y_off_peak_total - The price variance of both energy and power during off peak hours for 1 year.
+* variance_1y_peak_total - The price variance of both energy and power during peak hours for 1 year.
+* variance_1y_mid_peak_total - The price variance of both energy and power during mid peak hours for 1 year.
+
+The code below will calculate the price variance throughout the last six months of the year between peak hours and will add columns to the client_df.
+
+```
+# Use the .groupby() command to group the data in the price_df dataframe by the id column.
+# Use the .tail(6) command after the .groupby() command to only include the last 6 months of the year per customer.
+# Use the .agg() command to use multiple aggregate functions (var) across multiple columns.
+# Use the .reset_index() command to insert the outputs into a dataframe and reset the index column.
+
+price_variance_6months = price_df.groupby('id').tail(6).groupby('id').agg({'price_off_peak_var': 'var', 
+                                                                           'price_peak_var': 'var', 
+                                                                           'price_mid_peak_var': 'var', 
+                                                                           'price_off_peak_fix': 'var', 
+                                                                           'price_peak_fix': 'var', 
+                                                                           'price_mid_peak_fix': 'var', 
+                                                                           'price_off_peak_total': 'var', 
+                                                                           'price_peak_total': 'var', 
+                                                                           'price_mid_peak_total': 'var'}).reset_index()
+
+# Use the .rename() command to rename columns.
+
+price_variance_6months.rename(columns = {'price_off_peak_var':'variance_6m_off_peak_var', 
+                                         'price_peak_var':'variance_6m_peak_var', 
+                                         'price_mid_peak_var':'variance_6m_mid_peak_var', 
+                                         'price_off_peak_fix':'variance_6m_off_peak_fix', 
+                                         'price_peak_fix':'variance_6m_peak_fix', 
+                                         'price_mid_peak_fix':'variance_6m_mid_peak_fix', 
+                                         'price_off_peak_total':'variance_6m_off_peak_total', 
+                                         'price_peak_total':'variance_6m_peak_total', 
+                                         'price_mid_peak_total':'variance_6m_mid_peak_total'}, 
+                                         inplace = True)
+
+# Merge the client_df dataframe with the 6 month variance dataframes.
+
+client_df = pd.merge(client_df, 
+                     price_variance_6months, 
+                     on = 'id')
+```
+Nine columns are added to the client_df dataframe:
+* variance_6m_off_peak_var - The price variance of energy during off peak hours for the last 6 months of the year.
+* variance_6m_peak_var - The price variance of energy during peak hours for the last 6 months of the year.
+* variance_6m_mid_peak_var - The price variance of energy during mid peak hours for the last 6 months of the year.
+* variance_6m_off_peak_fix - The price variance of power during off peak hours for the last 6 months of the year.
+* variance_6m_peak_fix - The price variance of power during peak hours for the last 6 months of the year.
+* variance_6m_mid_peak_fix - The price variance of power during mid peak hours for the last 6 months of the year.
+* variance_6m_off_peak_total - The price variance of both energy and power during off peak hours for the last 6 months of the year.
+* variance_6m_peak_total - The price variance of both energy and power during peak hours for the last 6 months of the year.
+* variance_6m_mid_peak_total - The price variance of both energy and power during mid peak hours for the last 6 months of the year.
+
+**In summary we:**
+* Calculated the price variance of energy between different peak hours (off peak, peak, and mid peak) for 1 year.
+* Calculated the price variance of power between different peak hours (off peak, peak, and mid peak) for 1 year.
+* Calculated the price variance of energy and power between different peak hours (off peak, peak, and mid peak) for 1 year.
+* Repeated the previous price variance calculations using the last 6 months of the year instead of the whole year.
+* The results of the variance calculations were added to the client_dataframe. A total of 18 columns were added.
+
+### 3. Difference in Price: Beginning of Year to End of Year
+Another metric we can use to determine if price sensitivity may be a cause of churn is to determine the difference between the price of power at the end of the year and the price at the beginning of the year. **This will give us the price range for each of PowerCo's customers.**
