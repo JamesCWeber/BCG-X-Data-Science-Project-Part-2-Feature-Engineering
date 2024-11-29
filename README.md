@@ -3,16 +3,16 @@
 ## Introduction
 This is Part 2 of a project from the [BCG X Data Science micro-internship](https://www.theforage.com/simulations/bcg/data-science-ccdz). The Boston Consulting Group (BCG) is an American global consulting firm that  partners with leaders in business and society to tackle their most important challenges. It is one of the world's 3 largest consulting firms along with McKinsey & Company and Bain & Company. BCG X is a new initiative from BCG that combines the firm's consulting expertise with tech building and design.
 
-**In this task, I take on the role of a junior data analyst employed at BCG X. BCG X's client, a major gas and electricity utility called PowerCo, is concerned about their customers leaving for better offers from other energy providers.**
+In this task, I take on the role of a junior data analyst employed at BCG X. BCG X's client, a major gas and electricity utility called PowerCo, is concerned about their customers leaving for better offers from other energy providers. **In this part of the project, I will conduct feature engineering by manipulating and transforming raw data to create new features to improve the performance of the machine learning model we will be using in part 3.**
 
 ## Problem Statement
-PowerCo has expressed concern over their customers leaving them for better offers from competing energy companies. This concern is exacerbated by the fact that the energy market has had a lot of change in recent years and there are more options than ever for customers to choose from. During a meeting with the Associate Director of the Data Science team, **one potential reason for churn is price sensitivity. I am tasked with investigating this hypothesis.** To gain a holistic understanding of the data provided by PowerCo, my first task is to conduct exploratory data analysis.
+PowerCo has expressed concern over their customers leaving them for better offers from competing energy companies. This concern is exacerbated by the fact that the energy market has had a lot of change in recent years and there are more options than ever for customers to choose from. During a meeting with the Associate Director of the Data Science team, **one potential reason for churn is price sensitivity.** I am tasked with investigating this hypothesis. **To improve the performance of the machine learning model we will be using in part 3, I will conduct feature engineering on the dataset and create new features using the current dataset.**
 
 ## Skills Demonstrated
 * Python
-* Exploratory Data Analysis
+* Feature Engineering
+* Data Manipulation
 * Data Visualization
-* Descriptive Statistics
 
 ## Data Sourcing
 This data was provided to me by the BCG X Data Science microinternship hosted by Forage. A copy of the data is included in this repository under the file name: client_data (1).csv and price_data (1).csv.
@@ -59,3 +59,29 @@ Attributes for price data:
 * price_off_peak_fix - Price of power for the 1st period (off peak).
 * price_peak_fix - Price of power for the 2nd period (peak).
 * price_mid_peak_fix - Price of power for the 3rd period (mid peak).
+
+## Feature Engineering and Data Visualizations
+**Feature engineering is the process of selecting, manipulating and transforming raw data into features that can be used in supervised machine learning. A feature is any measurable input that can be used in a predictive model (each column that make up the data is a feature).**
+
+**Supervised machine learning is the creation of data models by using labeled datasets (column names are the labels) to train a model to predict outcomes.**
+
+A copy of this analysis is included in this repository under the file name: James Weber Feature Engineering.ipynb.
+
+### 1. Importing Libraries and Data
+We must first import libraries which contains the commands we need for feature engineering.
+Then we import the data from the client_data(1).csv and price_data(1).csv files into dataframes.
+
+```
+# Importing libraries
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
+# Use the read_csv() command to import .csv files.
+# Create a client_df dataframe for the client data and a price_df dataframe for the price data.
+
+client_df = pd.read_csv(r'C:/Users/jwebe/Desktop/client_data (1).csv')
+price_df = pd.read_csv(r'C:/Users/jwebe/Desktop/price_data (1).csv')
+```
+### 2. 
