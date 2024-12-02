@@ -285,4 +285,126 @@ Two features are added to the client_df dataframe:
 * The client_df dataframe gains a total of 20 new features.
 
 ### 4. Avergae Price Across Peak Hours
+Another metric we can use to determine if price sensitivity is a major cause of churn is the average price across peak hours. We will calculate the average price for each peak hour and then calculate the change in average price between peak hours (change in average price from off peak hours to peak hours, etc.) This will give us an indication of how much every customer has to pay when peak hours change.
+
+We will first create a dataframe called avg_prices. The avg_prices dataframe contains the average price of energy and power for each peak hour.
+```
+# Create a dataframe than contains the average peak hour prices grouped by companies.
+# Use the .groupby() command to group the data by id.
+# Use the .agg() command to use multiple aggregate functions (mean) across multiple columns.
+# Use the .reset_index() command to insert the outputs into a dataframe and reset the index column.
+
+avg_prices = price_df.groupby(['id']).agg({'price_off_peak_var': 'mean', 
+                                           'price_peak_var': 'mean', 
+                                           'price_mid_peak_var': 'mean', 
+                                           'price_off_peak_fix': 'mean', 
+                                           'price_peak_fix': 'mean', 
+                                           'price_mid_peak_fix': 'mean'}).reset_index()
+```
+Once the average prices are calculated, we will calculate the change in price between off peak hours and peak hours, peak hours and mide peak hours, and off peak hours and mid peak hours.
+```
+# Calculate the differences of average prices between peak periods.
+
+avg_prices['energy_mean_diff_off_peak_peak'] = avg_prices['price_off_peak_var'] - avg_prices['price_peak_var']
+avg_prices['energy_mean_diff_peak_mid_peak'] = avg_prices['price_peak_var'] - avg_prices['price_mid_peak_var']
+avg_prices['energy_mean_diff_off_peak_mid_peak'] = avg_prices['price_off_peak_var'] - avg_prices['price_mid_peak_var']
+avg_prices['power_mean_diff_off_peak_peak'] = avg_prices['price_off_peak_fix'] - avg_prices['price_peak_fix']
+avg_prices['power_mean_diff_peak_mid_peak'] = avg_prices['price_peak_fix'] - avg_prices['price_mid_peak_fix']
+avg_prices['power_mean_diff_off_peak_mid_peak'] = avg_prices['price_off_peak_fix'] - avg_prices['price_mid_peak_fix']
+
+# Keep only the id, and mean differences columns.
+
+avg_prices = avg_prices[['id', 
+                         'energy_mean_diff_off_peak_peak',
+                         'energy_mean_diff_peak_mid_peak', 
+                         'energy_mean_diff_off_peak_mid_peak', 
+                         'power_mean_diff_off_peak_peak', 
+                         'power_mean_diff_peak_mid_peak', 
+                         'power_mean_diff_off_peak_mid_peak']]
+```
+Lastly, we will merge the calculated average price differences to the client_df dataframe.
+```
+# Merge the avg_prices dataframe to the client_df dataframe.
+# Merge the dataframes on the id column.
+
+client_df = pd.merge(client_df, 
+                     avg_prices, 
+                     on = 'id')
+```
+Six features are added to the client dataframe:
+* energy_mean_diff_off_peak_peak - The average difference in energy price between off peak and peak hours.
+* energy_mean_diff_peak_mid_peak - The average difference in energy price between peak and mid peak hours.
+* energy_mean_diff_off_peak_mid_peak - The average difference in energy price between off peak and mid peak hours.
+* power_mean_diff_off_peak_peak - The average difference in power price between off peak and peak hours.
+* power_mean_diff_peak_mid_peak - The average difference in power price between peak and mid peak hours.
+* power_mean_diff_off_peak_mid_peak - The average difference in power price between off peak and mid peak hours.
+
+**In summary, we:**
+* Created a dataframe called avg_prices which contains the average price of energy and power during peak hours for every PowerCo customer.
+* Calculated the change in the average prices between off peak and peak hours, between peak hours and mid peak hours, and between off peak hours and mid peak hours.
+* The results of the average price differences were added to the client_df dataframe. The client_df datafame gains 6 new features.
+* The client_df dataframe gains a total of 26 new features.
+  
+### Greatest Price Change Across Peak Hours
+The last metric we will use to determine if price sensitivity is a major cause of churn is the greatest price change across peak hours. In the previous section we have calculated the avearage price differences between peak hours. In this section we will calculate the largest change between peak hours.
+
+First, we create a dataframe called monthly_prices. Then we calculate the change in price for energy and power between peak hours for every month.
+```
+# Create a dataframe than contains the id and price_date columns, and the peak hour columns for energy and power.
+
+monthly_prices = price_df.drop(columns = ['price_off_peak_total', 
+                                          'price_peak_total', 
+                                          'price_mid_peak_total'])
+
+# Calculate the difference between peak periods for every company and every month.
+
+monthly_prices['monthly_diff_off_peak_peak_var'] = monthly_prices['price_off_peak_var'] - monthly_prices['price_peak_var']
+monthly_prices['monthly_diff_peak_mid_peak_var'] = monthly_prices['price_peak_var'] - monthly_prices['price_mid_peak_var']
+monthly_prices['monthly_diff_off_peak_mid_peak_var'] = monthly_prices['price_off_peak_var'] - monthly_prices['price_mid_peak_var']
+monthly_prices['monthly_diff_off_peak_peak_fix'] = monthly_prices['price_off_peak_fix'] - monthly_prices['price_peak_fix']
+monthly_prices['monthly_diff_peak_mid_peak_fix'] = monthly_prices['price_peak_fix'] - monthly_prices['price_mid_peak_fix']
+monthly_prices['monthly_diff_off_peak_mid_peak_fix'] = monthly_prices['price_off_peak_fix'] - monthly_prices['price_mid_peak_fix']
+```
+Then we group all rows by customer ID and find the maximum value for each price difference between peak hours.
+```
+# Use the .groupby() command to group the data by id.
+# Use the .agg() command to use multiple aggregate functions (max) across multiple columns.
+# Use the .reset_index() command to insert the outputs into a dataframe and reset the index column.
+
+max_difference_across_peak_period = monthly_prices.groupby(['id']).agg({'monthly_diff_off_peak_peak_var': 'max', 
+                                                                        'monthly_diff_peak_mid_peak_var': 'max', 
+                                                                        'monthly_diff_off_peak_mid_peak_var': 'max', 
+                                                                        'monthly_diff_off_peak_peak_fix': 'max', 
+                                                                        'monthly_diff_peak_mid_peak_fix': 'max', 
+                                                                        'monthly_diff_off_peak_mid_peak_fix': 'max'}).reset_index()
+
+# Use the .rename() command to rename columns.
+max_difference_across_peak_period.rename(columns = {'monthly_diff_off_peak_peak_var':'max_diff_off_peak_peak_var', 
+                                                    'monthly_diff_peak_mid_peak_var':'max_diff_peak_mid_peak_var', 
+                                                    'monthly_diff_off_peak_mid_peak_var':'max_diff_off_peak_mid_peak_var', 
+                                                    'monthly_diff_off_peak_peak_fix':'max_diff_off_peak_peak_fix', 
+                                                    'monthly_diff_peak_mid_peak_fix':'max_diff_peak_mid_peak_fix', 
+                                                    'monthly_diff_off_peak_mid_peak_fix':'max_diff_off_peak_mid_peak_fix'}, 
+                                                    inplace = True)
+```
+Lastly, we merge the greatest price differences across peak hours to the client_df dataframe.
+```
+client_df = pd.merge(client_df, 
+                     max_difference_across_peak_period, 
+                     on = 'id')
+```
+Six features are added to the client dataframe:
+* max_diff_off_peak_peak_var - The greatest difference in energy price between off peak and peak hours.
+* max_diff_peak_mid_peak_var - The greatest difference in energy price between peak and mid peak hours
+*	max_diff_off_peak_mid_peak_var - The greatest difference in energy price between off peak and mid peak hours.
+* max_diff_off_peak_peak_fix - The greatest difference in power price between off peak and peak hours.
+* max_diff_peak_mid_peak_fix - The greatest difference in power price between peak and mid peak hours
+*	max_diff_off_peak_mid_peak_fix - The greatest difference in power price between off peak and mid peak hours.
+
+**In summary, we:**
+* Created a dataframe called monthly_prices which contains the monthly price of energy and power during peak hours for every PowerCo customer.
+* Calculated the change in the average prices between off peak and peak hours, between peak hours and mid peak hours, and between off peak hours and mid peak hours.
+* Grouped all rows in the monthly_prices dataframe by customer ID, and found the maximum price change between peak hours.
+* The results of the greatest price differences were added to the client_df dataframe. The client_df datafame gains 6 new features.
+* The client_df dataframe gains a total of 32 new features.
 
