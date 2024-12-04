@@ -6,7 +6,7 @@ This is Part 2 of a project from the [BCG X Data Science micro-internship](https
 In this task, I take on the role of a junior data analyst employed at BCG X. BCG X's client, a major gas and electricity utility called PowerCo, is concerned about their customers leaving for better offers from other energy providers. **In this part of the project, I will conduct feature engineering by manipulating and transforming raw data to create new features to improve the performance of the machine learning model we will be using in part 3.**
 
 ## Problem Statement
-PowerCo has expressed concern over their customers leaving them for better offers from competing energy companies. This concern is exacerbated by the fact that the energy market has had a lot of change in recent years and there are more options than ever for customers to choose from. During a meeting with the Associate Director of the Data Science team, **one potential reason for churn is price sensitivity.** I am tasked with investigating this hypothesis. **To improve the performance of the machine learning model we will be using in part 3, I will conduct feature engineering on the dataset and create new features using the current dataset.**
+PowerCo has expressed concern over their customers leaving them for better offers from competing energy companies. This concern is exacerbated by the fact that the energy market has had a lot of change in recent years and there are more options than ever for customers to choose from. During a meeting with the Associate Director of the Data Science team, **one potential reason for churn is price sensitivity.** I am tasked with investigating this hypothesis. **We will use a predictive machine learning model to determine what features are most influential to customer churn. To improve the performance of the machine learning model, which we will be using in part 3, I will conduct feature engineering on the dataset and create new features using the current dataset.**
 
 ## Skills Demonstrated
 * Python
@@ -61,15 +61,15 @@ Attributes for price data:
 * price_mid_peak_fix - Price of power for the 3rd period (mid peak).
 
 ## Feature Engineering and Data Visualizations
-**Feature engineering is the process of selecting, manipulating and transforming raw data into features that can be used in supervised machine learning. A feature is any measurable input that can be used in a predictive model (each column that make up the data is a feature).**
+**Feature engineering is the process of selecting, manipulating and transforming raw data into features that can be used in supervised machine learning. A feature is any measurable input that can be used in a predictive model. The features we have in our dataset are listed in the Data Attribures section above.**
 
-**Supervised machine learning is the creation of data models by using labeled datasets (column names are the labels) to train a model to predict outcomes.**
+**Supervised machine learning is the creation of data models by using labeled datasets to train a model to predict outcomes.**
 
 A copy of this analysis is included in this repository under the file name: James Weber Feature Engineering.ipynb.
 
 ### 1. Importing Libraries and Data
 We must first import libraries which contains the commands we need for feature engineering.
-Then we import the data from the client_data(1).csv and price_data(1).csv files into dataframes.
+Then we import the data from the client_data(1).csv and price_data(1).csv files into client_df and price_df dataframes respectively.
 
 ```
 # Importing libraries
@@ -85,12 +85,12 @@ client_df = pd.read_csv(r'C:/Users/jwebe/Desktop/client_data (1).csv')
 price_df = pd.read_csv(r'C:/Users/jwebe/Desktop/price_data (1).csv')
 ```
 
-### 2. Price Variance Between Peak Hours
-When speaking wtth the Associate Director of the Data Science team, one hypothesis for PowerCo's customer churn is price sensitivity, the degree to which demand changes when the cost of a product or service changes. However, **there are no features in the raw data that reflect price change. We will use feature engineering techniques to create features that reflect price change.**
+### 2. Creating Price Sensitivty Feature: Price Variance During Peak Hours
+**When speaking wtth the Associate Director of the Data Science team, one hypothesis for PowerCo's customer churn is price sensitivity,** the degree to which demand changes when the cost of a product or service changes. However, **there are no features in the raw data that reflect price change. We will use feature engineering techniques to create features that reflect price change.**
 
 **One metric related to price change is the variance of price throughout the year between peak hours.** Variance is the spread between numbers in a dataset. **Variance will give us an inidcation of how much the price has changed over a year. We will also include the variance for the last 6 months in the year.**
 
-The price_df dataframe (which contains the price data) separate the price of energy and the price of power and divide them between various peak hours (off peak, peak, and mid peak). The code below will add the 2 prices and create a new column for total price during off peak, peak, and mid peak hours.
+The price_df dataframe contains the price of energy and the price of power and during various peak hours (off peak, peak, and mid peak). To make the price_df dataframe more complete, we will sum together the price of energy and power to calculate a total price during peak hours. A new feature will be added to the price_df dataframe for each total price calculated.
 
 ```
 # The price_df dataframe contains data for the price of energy and power for each customer.
@@ -105,9 +105,9 @@ price_df['price_mid_peak_total'] = price_df['price_mid_peak_var'] + price_df['pr
 Three features are added to the price_df dataframe: 
 * price_off_peak_total - The price of energy and power during off peak hours.
 * price_peak_total - The price of energy and power during peak hours.
-* price_mid_peak_total - The price of energy and power during MID peak hours.
+* price_mid_peak_total - The price of energy and power during mid peak hours.
 
-The code below will calculate the price variance throughout the year between peak hours and will add columns to the client_df (dataframe containing client data) for each variance calculated.
+The code below will calculate the energy, power, and total price variance throughout the year during peak hours. A new feature will be added to the client_df dataframe for each price variance calculated.
 
 ```
 # Use the .groupby() command to group the data in the price_df dataframe by the id column.
@@ -153,8 +153,7 @@ Nine features are added to the client_df dataframe:
 * variance_1y_peak_total - The price variance of both energy and power during peak hours for 1 year.
 * variance_1y_mid_peak_total - The price variance of both energy and power during mid peak hours for 1 year.
 
-The code below will calculate the price variance throughout the last six months of the year between peak hours and will add columns to the client_df.
-
+We will also calculate the price variance for the last 6 months of the year and add the price variances to the3 client_df dataframe.
 ```
 # Use the .groupby() command to group the data in the price_df dataframe by the id column.
 # Use the .tail(6) command after the .groupby() command to only include the last 6 months of the year per customer.
@@ -202,25 +201,21 @@ Nine features are added to the client_df dataframe:
 * variance_6m_mid_peak_total - The price variance of both energy and power during mid peak hours for the last 6 months of the year.
 
 **In summary, we:**
-* Calculated the price variance of energy between different peak hours (off peak, peak, and mid peak) for 1 year.
-* Calculated the price variance of power between different peak hours (off peak, peak, and mid peak) for 1 year.
-* Calculated the price variance of energy and power between different peak hours (off peak, peak, and mid peak) for 1 year.
-* Repeated the previous price variance calculations using the last 6 months of the year instead of the whole year.
-* The results of the variance calculations were added to the client_df dataframe. The client_df dataframe gains 18 new features.
+* Calculated the price variance of energy, power, and total price between different peak hours (off peak, peak, and mid peak) for 1 year.
+* Calculated the price variance of energy, power, and total price between different peak hours (off peak, peak, and mid peak) for the last 6 months of the year.
+* Added the price variances to the client_df dataframe. The client_df dataframe gains 18 new features.
 
-### 3. Difference in Price: Beginning of Year to End of Year
-Another metric we can use to determine if price sensitivity may be a cause of churn is to determine the difference between the price of power at the end of the year and the price at the beginning of the year. **This will give us the price range for each of PowerCo's customers.**
+### 3. Creating Price Sensitivty Feature: Price Difference Beginning of Year to End of Year
+**Another metric we can use to determine if price sensitivity may be a cause of churn is to determine the difference between the price of energy and power at the end of the year and the price of energy and power at the beginning of the year.**
 
-The price_df dataframe contains more information than we need. We'll create a dataframe called monthly_price_by_id which will contain data on customer id, price date, and the price of energy and power during off peak hours.
+The code below will create a dataframe called price_differences. The price_differences dataframe contains data on the price of energy and power during off peak hours at the beginning of the year (2015-01-01) and at the end of the year (2015-12-01).
 ```
 # Create a dataframe that contains the customer ID, price dates, and the off peak prices.
 # Use the .reset_index() command to insert the outputs into a dataframe and reset the index column.
 
 monthly_price_by_id = price_df.groupby(['id', 'price_date']).agg({'price_off_peak_var': 'mean', 
                                                                   'price_off_peak_fix': 'mean'}).reset_index()
-```
-We will then extract data from the monthly_price_by_id dataframe where the price date is 2015-01-01 (beginning of the year) and 2015-12-01 (end of the year).
-``
+
 # Create dataframes for the price of power at the beginning of the year and the end of the year.
 # Use the .groupby() command to group the data by the id column.
 # Use the .first() and .last() command to select the first and last datapoint in the group.
@@ -249,8 +244,8 @@ end_of_year_prices.rename(columns = {'price_off_peak_var':'ending_year_price_ene
 # Merge the dataframes using the id column.
 
 price_differences = pd.merge(end_of_year_prices, beginning_of_year_prices, on = 'id')
-``
-Then we will calculate the differences in the price of energy and power from the end of the year to the beginning of the year.
+```
+Once the price_differences dataframe is created, we will the difference between the price at the end of the year and the price at the beginning of the year. The price differences will be added to the client_df dataframe.
 ```
 # Calcualte the differences between the beginnig of year prices and end of year prices.
 
@@ -262,9 +257,7 @@ price_differences['off_peak_price_difference_power'] = price_differences['ending
 price_differences = price_differences[['id', 
                                        'off_peak_price_difference_energy', 
                                        'off_peak_price_difference_power']]
-```
-Lastly, we will merge our finding to the client_df dataframe.
-```
+
 # Merge the price_differences dataframe to the client_df dataframe.
 # Merge the dataframes on the id column.
 
@@ -273,21 +266,19 @@ client_df = pd.merge(client_df,
                      on = 'id')
 ```
 Two features are added to the client_df dataframe:
-* off_peak_price_difference_energy - The difference in price of energy from the beginning of the year to the end of the year.
-* off_peak_price_difference_power - The difference in price of power from the beginning of the year to the end of the year.
+* off_peak_price_difference_energy - The price difference of energy during off peak hours from the beginning of the year to the end of the year.
+* off_peak_price_difference_power - The price difference of power during off peak hours from the beginning of the year to the end of the year.
 
 **In summary, we:**
-* Extracted the data we need from the price_df dataframe (contains data on the price of energy and power during different peak hours for every month) into another dataframe called monthly_price_by_id.
-* The monthly_price_by_id dataframe contains data on customer id, price date, and the price of energy and power during off peak hours.
-* Extracted data from the monthly_price_by_id dataframe so that only data from price dates 2015-01-01 and 2015-12-01 are contained.
-* Subtracted the price of energy and power at the end of the year with the price of energy and power at the beginning of the year.
-* The results of the price difference calculations were added to the client_df dataframe. The client_df datafame gains 2 new features.
+* Created a dataframe called price_differences which contains the price of energy and power during off peak hours at the beginning and end of the year.
+* Calcualted the price difference of energy and power from the beginning of the year to the end of the year.
+* Added the price differences to the client_df dataframe. The client_df datafame gains 2 new features.
 * The client_df dataframe gains a total of 20 new features.
 
 ### 4. Avergae Price Across Peak Hours
-Another metric we can use to determine if price sensitivity is a major cause of churn is the average price across peak hours. We will calculate the average price for each peak hour and then calculate the change in average price between peak hours (change in average price from off peak hours to peak hours, etc.) This will give us an indication of how much every customer has to pay when peak hours change.
+**Another metric we can use to determine if price sensitivity is a major cause of churn is the average price across peak hours. This will give us an indication of how much every customer has to pay when peak hours change.**
 
-We will first create a dataframe called avg_prices. The avg_prices dataframe contains the average price of energy and power for each peak hour.
+First, we create a dataframe called avg_prices. The avg_prices dataframe contains the average price of energy and power for each peak hour.
 ```
 # Create a dataframe than contains the average peak hour prices grouped by companies.
 # Use the .groupby() command to group the data by id.
@@ -301,9 +292,9 @@ avg_prices = price_df.groupby(['id']).agg({'price_off_peak_var': 'mean',
                                            'price_peak_fix': 'mean', 
                                            'price_mid_peak_fix': 'mean'}).reset_index()
 ```
-Once the average prices are calculated, we will calculate the change in price between off peak hours and peak hours, peak hours and mide peak hours, and off peak hours and mid peak hours.
+Once the average prices are calculated, we will calculate the difference in energy price and power price across peak hours (off peak hours to peak hours, peak hours to mid peak hours, and off peak hours to mid peak hours). The avearage price differences will be added to the client_df dataframe.
 ```
-# Calculate the differences of average prices between peak periods.
+# Calculate the differences of average prices across peak periods.
 
 avg_prices['energy_mean_diff_off_peak_peak'] = avg_prices['price_off_peak_var'] - avg_prices['price_peak_var']
 avg_prices['energy_mean_diff_peak_mid_peak'] = avg_prices['price_peak_var'] - avg_prices['price_mid_peak_var']
@@ -321,9 +312,7 @@ avg_prices = avg_prices[['id',
                          'power_mean_diff_off_peak_peak', 
                          'power_mean_diff_peak_mid_peak', 
                          'power_mean_diff_off_peak_mid_peak']]
-```
-Lastly, we will merge the calculated average price differences to the client_df dataframe.
-```
+
 # Merge the avg_prices dataframe to the client_df dataframe.
 # Merge the dataframes on the id column.
 
@@ -340,15 +329,15 @@ Six features are added to the client dataframe:
 * power_mean_diff_off_peak_mid_peak - The average difference in power price between off peak and mid peak hours.
 
 **In summary, we:**
-* Created a dataframe called avg_prices which contains the average price of energy and power during peak hours for every PowerCo customer.
-* Calculated the change in the average prices between off peak and peak hours, between peak hours and mid peak hours, and between off peak hours and mid peak hours.
-* The results of the average price differences were added to the client_df dataframe. The client_df datafame gains 6 new features.
+* Created a dataframe called avg_prices which contains the average price of energy and power during peak hours.
+* Calculated the change in the average prices across peak hours (off peak hours to peak hours, peak hours to mid peak hours, and off peak hours to mid peak hours).
+* Added the average price differences to the client_df dataframe. The client_df datafame gains 6 new features.
 * The client_df dataframe gains a total of 26 new features.
   
 ### Greatest Price Change Across Peak Hours
-The last metric we will use to determine if price sensitivity is a major cause of churn is the greatest price change across peak hours. In the previous section we have calculated the avearage price differences between peak hours. In this section we will calculate the largest change between peak hours.
+**The last metric we will use to determine if price sensitivity is a major cause of churn is the greatest price change across peak hours.** In the previous section we have calculated the avearage price differences between peak hours. In this section we will calculate the largest change between peak hours. **This metric will give us the price range for each of PowerCo's customers.**
 
-First, we create a dataframe called monthly_prices. Then we calculate the change in price for energy and power between peak hours for every month.
+First, we create a dataframe called monthly_prices. Then we calculate the change in energy price and power price across peak hours for every month.
 ```
 # Create a dataframe than contains the id and price_date columns, and the peak hour columns for energy and power.
 
@@ -365,7 +354,7 @@ monthly_prices['monthly_diff_off_peak_peak_fix'] = monthly_prices['price_off_pea
 monthly_prices['monthly_diff_peak_mid_peak_fix'] = monthly_prices['price_peak_fix'] - monthly_prices['price_mid_peak_fix']
 monthly_prices['monthly_diff_off_peak_mid_peak_fix'] = monthly_prices['price_off_peak_fix'] - monthly_prices['price_mid_peak_fix']
 ```
-Then we group all rows by customer ID and find the maximum value for each price difference between peak hours.
+We will then group the data by customer ID and find the greatest value of each price difference across peak hours. The greatest values in price difference will be added to the client_df dataframe.
 ```
 # Use the .groupby() command to group the data by id.
 # Use the .agg() command to use multiple aggregate functions (max) across multiple columns.
@@ -386,9 +375,10 @@ max_difference_across_peak_period.rename(columns = {'monthly_diff_off_peak_peak_
                                                     'monthly_diff_peak_mid_peak_fix':'max_diff_peak_mid_peak_fix', 
                                                     'monthly_diff_off_peak_mid_peak_fix':'max_diff_off_peak_mid_peak_fix'}, 
                                                     inplace = True)
-```
-Lastly, we merge the greatest price differences across peak hours to the client_df dataframe.
-```
+
+# Merge the avg_prices dataframe to the client_df dataframe.
+# Merge the dataframes on the id column
+
 client_df = pd.merge(client_df, 
                      max_difference_across_peak_period, 
                      on = 'id')
@@ -402,9 +392,11 @@ Six features are added to the client dataframe:
 *	max_diff_off_peak_mid_peak_fix - The greatest difference in power price between off peak and mid peak hours.
 
 **In summary, we:**
-* Created a dataframe called monthly_prices which contains the monthly price of energy and power during peak hours for every PowerCo customer.
-* Calculated the change in the average prices between off peak and peak hours, between peak hours and mid peak hours, and between off peak hours and mid peak hours.
-* Grouped all rows in the monthly_prices dataframe by customer ID, and found the maximum price change between peak hours.
-* The results of the greatest price differences were added to the client_df dataframe. The client_df datafame gains 6 new features.
+* Created a dataframe called monthly_prices which contains the monthly price of energy and power during peak hours.
+* Calculated the price change across peak hours for every month/
+* Grouped the data by customer ID, and found the greatest price change across peak hours.
+* Added greatest price differences to the client_df dataframe. The client_df datafame gains 6 new features.
 * The client_df dataframe gains a total of 32 new features.
 
+### Converting Dates into Number of Months
+Predictive machine learnging models cannot use date or datetime to make predictions. 
