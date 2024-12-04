@@ -85,7 +85,7 @@ client_df = pd.read_csv(r'C:/Users/jwebe/Desktop/client_data (1).csv')
 price_df = pd.read_csv(r'C:/Users/jwebe/Desktop/price_data (1).csv')
 ```
 
-### 2. Creating Price Sensitivty Feature: Price Variance During Peak Hours
+### 2. Creating Price Sensitivty Features: Price Variance During Peak Hours
 **When speaking wtth the Associate Director of the Data Science team, one hypothesis for PowerCo's customer churn is price sensitivity,** the degree to which demand changes when the cost of a product or service changes. However, **there are no features in the raw data that reflect price change. We will use feature engineering techniques to create features that reflect price change.**
 
 **One metric related to price change is the variance of price throughout the year between peak hours.** Variance is the spread between numbers in a dataset. **Variance will give us an inidcation of how much the price has changed over a year. We will also include the variance for the last 6 months in the year.**
@@ -205,7 +205,7 @@ Nine features are added to the client_df dataframe:
 * Calculated the price variance of energy, power, and total price between different peak hours (off peak, peak, and mid peak) for the last 6 months of the year.
 * Added the price variances to the client_df dataframe. The client_df dataframe gains 18 new features.
 
-### 3. Creating Price Sensitivty Feature: Price Difference Beginning of Year to End of Year
+### 3. Creating Price Sensitivty Features: Price Difference Beginning of Year to End of Year
 **Another metric we can use to determine if price sensitivity may be a cause of churn is to determine the difference between the price of energy and power at the end of the year and the price of energy and power at the beginning of the year.**
 
 The code below will create a dataframe called price_differences. The price_differences dataframe contains data on the price of energy and power during off peak hours at the beginning of the year (2015-01-01) and at the end of the year (2015-12-01).
@@ -275,7 +275,7 @@ Two features are added to the client_df dataframe:
 * Added the price differences to the client_df dataframe. The client_df datafame gains 2 new features.
 * The client_df dataframe gains a total of 20 new features.
 
-### 4. Avergae Price Across Peak Hours
+### 4. Creating Price Sensitivty Features: Average Price Across Peak Hours
 **Another metric we can use to determine if price sensitivity is a major cause of churn is the average price across peak hours. This will give us an indication of how much every customer has to pay when peak hours change.**
 
 First, we create a dataframe called avg_prices. The avg_prices dataframe contains the average price of energy and power for each peak hour.
@@ -334,7 +334,7 @@ Six features are added to the client dataframe:
 * Added the average price differences to the client_df dataframe. The client_df datafame gains 6 new features.
 * The client_df dataframe gains a total of 26 new features.
   
-### Greatest Price Change Across Peak Hours
+### 5. Creating Price Sensitivty Features: Greatest Price Change Across Peak Hours
 **The last metric we will use to determine if price sensitivity is a major cause of churn is the greatest price change across peak hours.** In the previous section we have calculated the avearage price differences between peak hours. In this section we will calculate the largest change between peak hours. **This metric will give us the price range for each of PowerCo's customers.**
 
 First, we create a dataframe called monthly_prices. Then we calculate the change in energy price and power price across peak hours for every month.
@@ -398,5 +398,44 @@ Six features are added to the client dataframe:
 * Added greatest price differences to the client_df dataframe. The client_df datafame gains 6 new features.
 * The client_df dataframe gains a total of 32 new features.
 
-### Converting Dates into Number of Months
-Predictive machine learnging models cannot use date or datetime to make predictions. 
+### 6. Transforming Dates: Number of Months
+We will be using the client_df dataframe as input for a predictive machine learning model. However, **predictive machine learning models cannot use dates as input and the client_df dataframe contains 4 date features.** date_activ, date_end, date_modif_prod, and date_renewal. **To make our our data more useful for predictive machine learning, we can convert dates into number of months.** The Data Science team has agreed to use Jan. 2016 as a reference date.
+
+The code below will create a function called convert_months. The inputs for the convert_months function are the reference date (Jan. 2016), the dataframe we will apply the function to (client_df), and the column we will apply the function to. The function will subtract the reference date from each date in a column and calculate the number of days the date is from the reference date. The function will then divide the number of days by 30 to convert the number of days into number of months.
+```
+# Use the def command to create a function where you  an input a column with date time and get the number of months from the reference date.
+# Name the function convert_months with variables for reference dates, dataframe, and column.
+# Create a variable called months which subtracts a date from the reference date, divides the number of days by 30 (1 month), and convert that number into an int data type.
+# The function should return the months value.
+
+def convert_months(reference_date, df, column):
+    months = ((reference_date - df[column]) / np.timedelta64(30, 'D')).astype(int)
+    return months
+```
+Once the function is created, we will use the function to convert the date columns into number of months based on the reference date.
+```
+# Use the datetime() command to create the reference date.
+
+reference_date = datetime(2016, 1, 1)
+
+# Use the convert_months function to calculate the number of months a date is from the reference date.
+# Use the convert_months function on the months_activ, months_to_end, months_modif_prod, and months_renewal columns.
+
+client_df['months_activ'] = convert_months(reference_date, client_df, 'date_activ')
+client_df['months_to_end'] = -convert_months(reference_date, client_df, 'date_end')
+client_df['months_modif_prod'] = convert_months(reference_date, client_df, 'date_modif_prod')
+client_df['months_renewal'] = convert_months(reference_date, client_df, 'date_renewal')
+```
+Four features are added to the client_df dataframe:
+* months_activ - Number of months the contract is activated.
+* months_to_end - Number of months until the end of the contract.
+* months_modif_prod - Number of months since the last modification of the contract.
+* months_renewal - Number of months until the next renewal.
+
+**In summary, we:**
+* Created a function that will take a reference date and convert a date into number of months based on the reference date.
+* Used the function to convert dates into number of months.
+* The client_df dataframe gains 4 new features.
+* The client_df dataframe gains a total of 36 new features.
+
+## 7. Transforming Dates: Tenure
