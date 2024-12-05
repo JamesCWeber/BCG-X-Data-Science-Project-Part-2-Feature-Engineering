@@ -61,7 +61,7 @@ Attributes for price data:
 * price_mid_peak_fix - Price of power for the 3rd period (mid peak).
 
 ## Feature Engineering and Data Visualizations
-**Feature engineering is the process of selecting, manipulating and transforming raw data into features that can be used in supervised machine learning. A feature is any measurable input that can be used in a predictive model. The features we have in our dataset are listed in the Data Attribures section above.**
+**Feature engineering is the process of selecting, manipulating and transforming raw data into features that can be used in supervised machine learning. A feature is any measurable input that can be used in a machine learning model. The features we have in our dataset are listed in the Data Attribures section above.**
 
 **Supervised machine learning is the creation of data models by using labeled datasets to train a model to predict outcomes.**
 
@@ -88,7 +88,7 @@ price_df = pd.read_csv(r'C:/Users/jwebe/Desktop/price_data (1).csv')
 ### 2. Creating Price Sensitivty Features: Price Variance During Peak Hours
 **When speaking wtth the Associate Director of the Data Science team, one hypothesis for PowerCo's customer churn is price sensitivity,** the degree to which demand changes when the cost of a product or service changes. However, **there are no features in the raw data that reflect price change. We will use feature engineering techniques to create features that reflect price change.**
 
-**One metric related to price change is the variance of price throughout the year between peak hours.** Variance is the spread between numbers in a dataset. **Variance will give us an inidcation of how much the price has changed over a year. We will also include the variance for the last 6 months in the year.**
+**One feature related to price change is the variance of price throughout the year between peak hours.** Variance is the spread between numbers in a dataset. **Variance will give us an inidcation of how much the price has changed over a year. We will also include the variance for the last 6 months in the year.**
 
 The price_df dataframe contains the price of energy and the price of power and during various peak hours (off peak, peak, and mid peak). To make the price_df dataframe more complete, we will sum together the price of energy and power to calculate a total price during peak hours. A new feature will be added to the price_df dataframe for each total price calculated.
 
@@ -206,7 +206,7 @@ Nine features are added to the client_df dataframe:
 * Added the price variances to the client_df dataframe. The client_df dataframe gains 18 new features.
 
 ### 3. Creating Price Sensitivty Features: Price Difference Beginning of Year to End of Year
-**Another metric we can use to determine if price sensitivity may be a cause of churn is to determine the difference between the price of energy and power at the end of the year and the price of energy and power at the beginning of the year.**
+**Another feature we can use to determine if price sensitivity may be a cause of churn is to determine the difference between the price of energy and power at the end of the year and the price of energy and power at the beginning of the year.**
 
 The code below will create a dataframe called price_differences. The price_differences dataframe contains data on the price of energy and power during off peak hours at the beginning of the year (2015-01-01) and at the end of the year (2015-12-01).
 ```
@@ -276,7 +276,7 @@ Two features are added to the client_df dataframe:
 * The client_df dataframe gains a total of 20 new features.
 
 ### 4. Creating Price Sensitivty Features: Average Price Across Peak Hours
-**Another metric we can use to determine if price sensitivity is a major cause of churn is the average price across peak hours. This will give us an indication of how much every customer has to pay when peak hours change.**
+**Another feature we can use to determine if price sensitivity is a major cause of churn is the average price across peak hours. This will give us an indication of how much every customer has to pay when peak hours change.**
 
 First, we create a dataframe called avg_prices. The avg_prices dataframe contains the average price of energy and power for each peak hour.
 ```
@@ -335,7 +335,7 @@ Six features are added to the client dataframe:
 * The client_df dataframe gains a total of 26 new features.
   
 ### 5. Creating Price Sensitivty Features: Greatest Price Change Across Peak Hours
-**The last metric we will use to determine if price sensitivity is a major cause of churn is the greatest price change across peak hours.** In the previous section we have calculated the avearage price differences between peak hours. In this section we will calculate the largest change between peak hours. **This metric will give us the price range for each of PowerCo's customers.**
+**The last feature we will use to determine if price sensitivity is a major cause of churn is the greatest price change across peak hours.** In the previous section we have calculated the avearage price differences between peak hours. In this section we will calculate the largest change between peak hours. **This feature will give us the price range for each of PowerCo's customers.**
 
 First, we create a dataframe called monthly_prices. Then we calculate the change in energy price and power price across peak hours for every month.
 ```
@@ -399,7 +399,7 @@ Six features are added to the client dataframe:
 * The client_df dataframe gains a total of 32 new features.
 
 ### 6. Transforming Dates: Number of Months
-We will be using the client_df dataframe as input for a predictive machine learning model. However, **predictive machine learning models cannot use dates as input and the client_df dataframe contains 4 date features.** date_activ, date_end, date_modif_prod, and date_renewal. **To make our our data more useful for predictive machine learning, we can convert dates into number of months.** The Data Science team has agreed to use Jan. 2016 as a reference date.
+We will be using the client_df dataframe as input for a predictive machine learning model. However, **machine learning models cannot use dates as input. We must convert date data into numeric format. To make our our data more useful for machine learning model, we can convert dates into number of months.** The client_df dataframe contains 4 date features: date_activ, date_end, date_modif_prod, and date_renewal. The Data Science team has agreed to use Jan. 2016 as a reference date.
 
 The code below will create a function called convert_months. The inputs for the convert_months function are the reference date (Jan. 2016), the dataframe we will apply the function to (client_df), and the column we will apply the function to. The function will subtract the reference date from each date in a column and calculate the number of days the date is from the reference date. The function will then divide the number of days by 30 to convert the number of days into number of months.
 ```
@@ -439,3 +439,57 @@ Four features are added to the client_df dataframe:
 * The client_df dataframe gains a total of 36 new features.
 
 ## 7. Transforming Dates: Tenure
+In the previous section, we have converted dates into a format that machine learning models can use (number of months). In this section, **we can use some of the date data to calculate tenure. A customer's tenure with a company afffect the customer's decision to churn. Customers that stay in business longer with
+a company are less likely to churn due to brand loyalty.**
+
+We can calculate tenure using the code below. The code will subtract data from the date_end column with data from the date_activ column. The difference is then divided by 365 to convert the number of days into years.
+```
+# Use the np.timedelta64() command to perform basic arithmatic with datetime data types.
+# Use the 365, 'D' arguement to convert the difference between 2 dates into number of years.
+# Use the .astype() command to convert a column into an int data type, so that the tenure is in whoole numbers.
+
+client_df['tenure'] = ((client_df['date_end'] - client_df['date_activ'])/np.timedelta64(365, 'D')).astype(int)
+```
+One feature is added to the client_df dataframe:
+* tenure - The number of years a customer has been in business with PowerCo.
+
+We have done everything we need with the date columns. Since the machine learning model cannot use dates as input, we will remove the 4 date columns.
+```
+# Use the .drop() command to remove columns from a dataframe.
+
+client_df = client_df.drop(columns = ['date_activ', 
+                                      'date_end', 
+                                      'date_modif_prod', 
+                                      'date_renewal'])
+```
+The client_df dataframe has lost 4 features:
+* date_activ - Date of activation of the contract.
+* date_end - Registered date of the end of the contract.
+* date_modif_prod - Date of the last modification of the product.
+* date_renewal - Date of the next contract renewal.
+
+**In summary, we:**
+* Calculated customer tenure by subtracting date_end with date_activ.
+* Removed the 4 columns that contain dates: date_activ, date_emd, date_modif_prod, and date_renewal.
+* The client_df data gains 1 new feature and lost 4 of its original features.
+* The cliend_df dataframe gains a total of 37 new features.
+
+## 8. Transforming Boolean Data
+**Boolean data is a type of data that can only be one of two values.** Examples of Boolean data is true or false, yes or no, on or off. **Machine learning models cannot use Boolean data for input, so we must convert Boolean data into numeric data. This is done by replacing values such as true or false with 1 or 0.**
+
+The client_df dataframe contains 1 feature with Boolean data: has_gas. Use the code below to convert the Boolean data (t and f) to numeric data (1 and 0).
+```
+client_df['has_gas'] = client_df['has_gas'].replace(['t', 'f'], 
+                                                    [1, 0])
+```
+
+**In summary, we:**
+* Converted Boolean data, t and f, to numeric data, 1 and 0.
+* Because the was transformed directly, no new features were added to the client_df dataframe.
+
+## 9. Transforming Categorical Data
+Categorical data is data that can be represented using words, symbols and characters rather than numbers. Machine learning models can only use numeric data as input so we must convert any categorical data into numeric data.
+
+Categorical data falls into 2 categories: ordinal and nominal. Ordinal data is categorical data with a clear order or heirarchy. Ordinal data include educational level, job titles, and ranks. To convert ordinal data into numeric data we can assign each cateogry with a number. For education level, 1 could represent high school leve, 2 could represent bachelor's degree, 3 could represent master's degree, and 4 could represent doctorate degree.
+
+Nominal data is categorical data with no inherent hierarchy or structure. Nominal data include gender, and race. To convert nominal data into numeric data, 
