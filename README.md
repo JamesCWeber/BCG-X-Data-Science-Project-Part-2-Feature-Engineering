@@ -471,8 +471,8 @@ The client_df dataframe has lost 4 features:
 **In summary, we:**
 * Calculated customer tenure by subtracting date_end with date_activ.
 * Removed the 4 columns that contain dates: date_activ, date_emd, date_modif_prod, and date_renewal.
-* The client_df data gains 1 new feature and lost 4 of its original features.
-* The cliend_df dataframe gains a total of 37 new features.
+* The client_df dataframe gains 1 new feature and lost 4 of its original features.
+* The client_df dataframe gains a total of 37 new features.
 
 ## 8. Transforming Boolean Data
 **Boolean data is a type of data that can only be one of two values.** Examples of Boolean data is true or false, yes or no, on or off. **Machine learning models cannot use Boolean data for input, so we must convert Boolean data into numeric data. This is done by replacing values such as true or false with 1 or 0.**
@@ -488,8 +488,82 @@ client_df['has_gas'] = client_df['has_gas'].replace(['t', 'f'],
 * Because the was transformed directly, no new features were added to the client_df dataframe.
 
 ## 9. Transforming Categorical Data
-Categorical data is data that can be represented using words, symbols and characters rather than numbers. Machine learning models can only use numeric data as input so we must convert any categorical data into numeric data.
+**Categorical data is data that can be represented using words, symbols and characters rather than numbers. Machine learning models can only use numeric data as input so we must convert any categorical data into numeric data.**
 
-Categorical data falls into 2 categories: ordinal and nominal. Ordinal data is categorical data with a clear order or heirarchy. Ordinal data include educational level, job titles, and ranks. To convert ordinal data into numeric data we can assign each cateogry with a number. For education level, 1 could represent high school leve, 2 could represent bachelor's degree, 3 could represent master's degree, and 4 could represent doctorate degree.
+Categorical data falls into 2 categories: ordinal and nominal. Ordinal data is categorical data with a clear order or heirarchy. Ordinal data includes educational level, job titles, and ranks. To convert ordinal data into numeric data we can assign each cateogry with a number. For education level, 1 could represent high school leve, 2 could represent bachelor's degree, 3 could represent master's degree, and 4 could represent doctorate degree.
 
-Nominal data is categorical data with no inherent hierarchy or structure. Nominal data include gender, and race. To convert nominal data into numeric data, 
+**Nominal data is categorical data with no inherent hierarchy or structure.** Nominal data includes gender, and race. **To convert nominal data into numeric data, we must create dummy variables.** Dummy variables are created when unique values in a column are given their own columns. Dummy variables can only contain 1 or 0, where 1 indicates that a row contains that attribute and 0 indicates that a row does not contain that attribute.
+
+The client_df dataframe contains 2 features with nominal catagorical data: channel_sales and origin_up. We will convert both features into a series of dummy variables.
+
+We will first investigate the channel_sales column to determine how many dummy variables will be created.
+```
+# Use the .astype() command to convert the channel_sales column from an object data type to a categorical data type.
+
+client_df['channel_sales'] = client_df['channel_sales'].astype('category')
+
+# Use the .value_counts() command to see the unique values in a column and the number of rows each value has.
+
+client_df['channel_sales'].value_counts()
+```
+![Count of Sales Channel Values](Sales_Channel_Dummy_Variables.png)
+
+**When we convert the channel_sales column into dummy variables, we will gain 8 new columns, one for each unique sales channel.** However, the last 3 values have really low number of occurances (11, 3, and 2 occurances). The total number of rows in the client_df dataframe is 14606. **The last 3 channel_sales values will have negligible predictive power to our model. We will remove the dummy variables for the last 3 values.**
+
+The code below will allow us to investigate the origin_up column to determine how many dummy variables will be created.
+```
+# Use the .astype() command to convert the origin_up column from an object data type to a categorical data type.
+
+client_df['origin_up'] = client_df['origin_up'].astype('category')
+
+# Use the .value_counts() command to see the unique values in a column and the number of rows each value has.
+
+client_df['origin_up'].value_counts()
+```
+![Count of Origin Values](Origin_Dummy_Variables.png)
+
+**Converting the origin_up column into dummy variables will create 6 new columns, one for each unique origin.** The last 3 values of the origin_up column have really low number of occurances (64, 2, and 1 occurances). **The last 3 origin_up values will have negligible predictive power to our model. We will remove the dummy variables for the last 3 values.**
+
+The code below will convert the channel_sales and origin_up columns into dummy variables. The code will also remove dummy variables that have negligible predictive power to our model.
+```
+# Use the .get_dummies() variables using the values in a column.
+
+client_df = pd.get_dummies(client_df, 
+                           columns = ['channel_sales'], 
+                           prefix = 'sales_channel', 
+                           dtype = int)
+
+# Use the .drop() command to remove columns from a dataframe.
+
+client_df = client_df.drop(columns = ['sales_channel_sddiedcslfslkckwlfkdpoeeailfpeds', 
+                                      'sales_channel_epumfxlbckeskwekxbiuasklxalciiuu', 
+                                      'sales_channel_fixdbufsefwooaasfcxdxadsiekoceaa'])
+
+# Use the .get_dummies() variables using the values in a column.
+
+client_df = pd.get_dummies(client_df, 
+                           columns = ['origin_up'], 
+                           prefix = 'origin', 
+                           dtype = int)
+
+# Use the .drop() command to remove columns from a dataframe.
+
+client_df = client_df.drop(columns = ['origin_MISSING', 
+                                      'origin_usapbepcfoloekilkwsdiboslwaxobdp', 
+                                      'origin_ewxeelcelemmiwuafmddpobolfuxioce'])
+```
+The client_df dataframe lost the channel_sales and origin_up columns and gains 8 new features:
+* sales_channel_MISSING - Dummy variable representing a sales channel.
+* sales_channel_ewpakwlliwisiwduibdlfmalxowmwpci - Dummy variable representing a sales channel.
+* sales_channel_foosdfpfkusacimwkcsosbicdxkicaua - Dummy variable representing a sales channel.
+* sales_channel_lmkebamcaaclubfxadlmueccxoimlema - Dummy variable representing a sales channel.
+* sales_channel_usilxuppasemubllopkaafesmlibmsdf - Dummy variable representing a sales channel.
+* origin_kamkkxfxxuwbdslkwifmmcsiusiuosws - Dummy variable representing the electricity campaign the customer first subscribed to.
+* origin_ldkssxwpmemidmecebumciepifcamkci - Dummy variable representing the electricity campaign the customer first subscribed to.
+* origin_lxidpiddsbxsbosboudacockeimpuepw - Dummy variable representing the electricity campaign the customer first subscribed to.
+
+**In summary we:**
+* Converted features with nominal, categorical data to dummy variables.
+* Removed dummy variables that have a negligible effect on the predictive power of our machine learning model.
+* The client_df dataframe gains 8 new feature and lost 2 of its original features.
+* The client_df dataframe gains 43 new features.
