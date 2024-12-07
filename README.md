@@ -438,7 +438,7 @@ Four features are added to the client_df dataframe:
 * The client_df dataframe gains 4 new features.
 * The client_df dataframe gains a total of 36 new features.
 
-## 7. Transforming Dates: Tenure
+### 7. Transforming Dates: Tenure
 In the previous section, we have converted dates into a format that machine learning models can use (number of months). In this section, **we can use some of the date data to calculate tenure. A customer's tenure with a company afffect the customer's decision to churn. Customers that stay in business longer with
 a company are less likely to churn due to brand loyalty.**
 
@@ -474,7 +474,7 @@ The client_df dataframe has lost 4 features:
 * The client_df dataframe gains 1 new feature and lost 4 of its original features.
 * The client_df dataframe gains a total of 37 new features.
 
-## 8. Transforming Boolean Data
+### 8. Transforming Boolean Data
 **Boolean data is a type of data that can only be one of two values.** Examples of Boolean data is true or false, yes or no, on or off. **Machine learning models cannot use Boolean data for input, so we must convert Boolean data into numeric data. This is done by replacing values such as true or false with 1 or 0.**
 
 The client_df dataframe contains 1 feature with Boolean data: has_gas. Use the code below to convert the Boolean data (t and f) to numeric data (1 and 0).
@@ -487,7 +487,7 @@ client_df['has_gas'] = client_df['has_gas'].replace(['t', 'f'],
 * Converted Boolean data, t and f, to numeric data, 1 and 0.
 * Because the was transformed directly, no new features were added to the client_df dataframe.
 
-## 9. Transforming Categorical Data
+### 9. Transforming Categorical Data
 **Categorical data is data that can be represented using words, symbols and characters rather than numbers. Machine learning models can only use numeric data as input so we must convert any categorical data into numeric data.**
 
 Categorical data falls into 2 categories: ordinal and nominal. Ordinal data is categorical data with a clear order or heirarchy. Ordinal data includes educational level, job titles, and ranks. To convert ordinal data into numeric data we can assign each cateogry with a number. For education level, 1 could represent high school leve, 2 could represent bachelor's degree, 3 could represent master's degree, and 4 could represent doctorate degree.
@@ -568,7 +568,7 @@ The client_df dataframe lost the channel_sales and origin_up columns and gains 8
 * The client_df dataframe gains 8 new feature and lost 2 of its original features.
 * The client_df dataframe gains 43 new features.
 
-## 10. Normalizing Skewed Data
+### 10. Normalizing Skewed Data
 **In the part 1 of this project, there were several columns that contain data that are positively skewed.** These columns include cons_12m, has_gas, cons_last_month, imp_cons, and the forecast columns. **The machine learning model that we will be using (Random Forest Model) assume that the data is both independent and normally distributed.**
 
 **The first assumption, that the data is independent, occurs when all data features are independant of each other. We will detect and address features that are depenednt on each other in the next section.**
@@ -653,9 +653,9 @@ The histograms above depict the data distributions of the normalized columns. Co
 **In summary we:**
 * Added 1 to all datapoints in columns with skewed data so that the datapoints can undergo logarithmic transformation.
 * Normalized data by data by calculating the logarithm base 10 for each datapoint in the columns with skewed data.
-* Created histograms for each normalized column to visualize then new data distribution.
+* Created histograms for each normalized column to visualize the new data distribution.
 
-## 11. Removing Dependent Variables
+### 11. Removing Dependent Variables
 In the previous section, we have discussed the 2 assumptions made by the machine learning model: that the data is independent and that the data is normally distributed. We have normalized the features that contain skewed data. We will now ensure that the data is independent by removing dependent variables in the dataset.
 
 **One indication of dependency between variables is a high correlation coeffecient. Coorelation is the measurement of how related 2 variables are with each other. Variables with a high correlation coefficient indicates that they share a lot of the same information and are more dependant on each other.**
@@ -671,5 +671,116 @@ correlation_matrix = correl_df.corr()
 
 The table above is a sample of the correlation coefficient for 2 variable combinations. The bolded labels at the top and left side are the names of each variable. The numbers where 2 labels intersect is the correlation coefficient between the variables.
 
-To detect variables with very high correlation coefficients, we can create a mask that covers values that we are not interested in. The data science team determine that variables with correlation coefficients equal to or greater than .98 (positive and negative) are too dependent on each other. We will create a mask that covers correlation coefficients that are between .98 and -.98.
+To detect variables with very high correlation coefficients, we can create a mask that covers values that we are not interested in. The data science team determine that variables with correlation coefficients equal to or greater than .98 (positive and negative) are too dependent on each other. We will create a mask that covers correlation coefficients that are between -.98 and .98.
 
+The code below is a function that will hide correlation coefficients that are between -.98 and .98. The code will apply the mask to the correlation coefficient table.
+```
+# Use the .map() command to apply a function to every item in a list, dataframe, etc.
+# Use the lamba x command to create a function with x as a variable.
+# Assign the x variable as a value greater than -.98 and less than .98.
+
+correl_mask = correlation_matrix.map(lambda x: -0.98 <= x <= 0.98)
+
+# Use the .mask() command to replace values where the condition is true.
+# Use correl_mask as the condition.
+# Normally, the .mask() command will replace values where the condition is true with another value.
+# .mask(correl_mask, 1) will replace all values where the condition is true with 1.
+# Since we did not specify what to replace the value with, the true values will be replaced with null values.
+
+masked_correl = correlation_matrix.mask(correl_mask)
+```
+![Sample of Masked Correlation](Masked_Correlation.png)
+
+The table above shows the correlation coefficients with the mask applied to it. The mask will only show correlation coefficients that are high enough for variables to be considered dependent.
+
+An easier way to visualize the correlation coefficients is to apply the data to a heatmap. The code below will apply the masked correlation data to a heatmap.
+```
+# To make it easier to visualize correlation, create a heatmap.
+# Use the .figure() command to change the size of the figure.
+
+plt.figure(figsize = (30, 30))
+
+# Use the .heatmap() command to create a heatmap.
+
+sns.heatmap(masked_correl, 
+            vmin = -1, 
+            vmax = 1, 
+            xticklabels = correl_df.columns.values, 
+            yticklabels = correl_df.columns.values, 
+            annot = True, 
+            annot_kws = {'size': 12}, 
+            linewidths = .5, 
+            cmap = 'coolwarm')
+
+plt.show()
+```
+![Correlation Heatmap](Correlation_Heatmap.png)
+
+The above heatmap shows the correlation coefficients for all 2 variable combinations. The mask is applied to the heatmap so only coeffeicients that are high enough for 2 variables to be considered dependent are shown. The coeffieiencts that start at the upper left corner, going diagonally to the lower right corner can be ignored. The remaining coeffients indicate a set of variables that are dependent on each other.
+
+The code below will remove dependent variables from the heatmap.
+```
+client_df = client_df.drop(columns = ['forecast_cons_year', 
+                                      'num_years_antig', 
+                                      'variance_1y_off_peak_total', 
+                                      'variance_1y_peak_total', 
+                                      'variance_1y_mid_peak_total', 
+                                      'variance_6m_off_peak_total', 
+                                      'variance_6m_peak_total', 
+                                      'variance_6m_mid_peak_total', 
+                                      'margin_gross_pow_ele', 
+                                      'max_diff_off_peak_peak_var', 
+                                      'max_diff_peak_mid_peak_fix'])
+```
+With the dependent variables removed, we will recreate the correlation heatmap to visually determine that all variables are independent of each other.
+```
+# Recreate the correl_df dataframe.
+# Use the .corr() command to create a dataframe with the correlation values between 2 variables.
+
+correl_df = client_df.drop(columns = 'id')
+correlation_matrix = correl_df.corr()
+
+# Apply the mask onto the correlation_matrix dataframe so that only correlation values greater than .98 are shown.
+
+masked_correl = correlation_matrix.mask(correl_mask)
+
+# Use the heatmap() command to recreate the heatmap.
+
+plt.figure(figsize = (30, 30))
+
+sns.heatmap(masked_correl, 
+            vmin = -1, 
+            vmax = 1, 
+            xticklabels = correl_df.columns.values, 
+            yticklabels = correl_df.columns.values, 
+            annot = True, 
+            annot_kws = {'size': 12}, 
+            linewidths = .5, 
+            cmap = 'coolwarm')
+
+plt.show()
+```
+![Correlation Heatmap without Dependent Variables](Correlation_Heatmap_Final.png)
+
+The data contains no dependent variables.
+
+**In summary we:**
+* Determined the correlation coefficient between variables.
+* Created a mask that only display correlation coefficients that indicate dependent variables.
+* Removed dependent variables.
+* Created a heatmap to visually determine if the data contains any dependent variables.
+* The client_df dataframe has lost 11 features.
+* The client_df dataframe gains a total of 54 new features.
+
+### 12. Exporting the Data into .csv File
+We have completed the feature engineering portion of this project. **The client_df dataframe will be used as input for a Random Forest model in the last part of this project. The Random Forest model will not only predict whether or nor a customer will churn, but also determine what features are influential in a customer's decision to churn.**
+
+The client_df dataframe has gained a total of 54 new features. We will export the new client_df dataframe rather than save over the original so that we can have a copy of the original, unaltered client data. We will then use the exported file as input for the Randokm Forest model.
+
+The code below is used to save a copy of the client_df dataframe into a .csv file.
+```
+# Use the .to_csv() command to export a dataframe to a .csv file.
+
+client_df.to_csv(r"C:/Users/jwebe/Desktop/data_for_predictions.csv", index=False)
+```
+A copy of the exported file is included in this repository under the file name: data_for_predictions.csv.
