@@ -567,3 +567,109 @@ The client_df dataframe lost the channel_sales and origin_up columns and gains 8
 * Removed dummy variables that have a negligible effect on the predictive power of our machine learning model.
 * The client_df dataframe gains 8 new feature and lost 2 of its original features.
 * The client_df dataframe gains 43 new features.
+
+## 10. Normalizing Skewed Data
+**In the part 1 of this project, there were several columns that contain data that are positively skewed.** These columns include cons_12m, has_gas, cons_last_month, imp_cons, and the forecast columns. **The machine learning model that we will be using (Random Forest Model) assume that the data is both independent and normally distributed.**
+
+**The first assumption, that the data is independent, occurs when all data features are independant of each other. We will detect and address features that are depenednt on each other in the next section.**
+
+**The second assumption, that the data is normally distributed, occurs when most data points cluster toward the middle of the range, while the rest taper off symmetrically.** In part 1, many columns show that the data is positively skewed. A positively skewed dataset indicates several outliers values that are significantly greater than other data points.
+
+**One method to normalize skewed data is to use Logarithm transformation.** A logarithmic transformation is a mathematical operation that involves taking the logarithm of each data point in a dataset. Logarithm transformation cannot be applied to values that are 0, so we will add 1 to all values.
+
+The code below will take all columns with skewed data and add 1 to all datapoints in those columns. The code will then perform logarithmic transformation to each datapoint by finding the logarithm base 10 for each datapoint.
+```
+# Use the .log10() command to transform the data in the column.
+# Add 1 to each column so that the minimum value is 1.
+
+client_df['cons_12m'] = np.log10(client_df['cons_12m'] + 1)
+client_df['cons_gas_12m'] = np.log10(client_df['cons_gas_12m'] + 1)
+client_df['cons_last_month'] = np.log10(client_df['cons_last_month'] + 1)
+client_df['imp_cons'] = np.log10(client_df['imp_cons'] + 1)
+client_df['forecast_cons_12m'] = np.log10(client_df['forecast_cons_12m'] + 1)
+client_df['forecast_cons_year'] = np.log10(client_df['forecast_cons_year'] + 1)
+client_df['forecast_discount_energy'] = np.log10(client_df['forecast_discount_energy'] + 1)
+client_df['forecast_meter_rent_12m'] = np.log10(client_df['forecast_meter_rent_12m'] + 1)
+client_df['forecast_price_energy_off_peak'] = np.log10(client_df['forecast_price_energy_off_peak'] + 1)
+client_df['forecast_price_energy_peak'] = np.log10(client_df['forecast_price_energy_peak'] + 1)
+client_df['forecast_price_pow_off_peak'] = np.log10(client_df['forecast_price_pow_off_peak'] + 1)
+```
+To ensure that the data has been normalized, we will plot out the data distribution for each column in a histgram. The highest point on each histogram (crest) should be in the middle.
+```
+# Use the fig, ax = plt.subplots() command to create a set of subplots within one cell.
+
+fig, axs = plt.subplots(11, 1, figsize=(15,50))
+
+# Use the boxplot() command to create box plots to see how the data is distributed.
+
+sns.histplot(client_df['cons_12m'].dropna(), 
+             kde = True, 
+             ax = axs[0])
+
+sns.histplot(client_df[client_df['has_gas'] == 1]['cons_gas_12m'].dropna(), 
+             kde = True, 
+             ax = axs[1])
+
+sns.histplot(client_df['cons_last_month'].dropna(), 
+             kde = True, 
+             ax = axs[2])
+
+sns.histplot(client_df['imp_cons'].dropna(), 
+             kde = True, 
+             ax = axs[3])
+
+sns.histplot(client_df['forecast_cons_12m'].dropna(), 
+             kde = True, 
+             ax = axs[4])
+
+sns.histplot(client_df['forecast_cons_year'].dropna(), 
+             kde = True, 
+             ax = axs[5])
+
+sns.histplot(client_df['forecast_discount_energy'].dropna(), 
+             kde = True, 
+             ax = axs[6])
+
+sns.histplot(client_df['forecast_meter_rent_12m'].dropna(), 
+             kde = True, 
+             ax = axs[7])
+
+sns.histplot(client_df['forecast_price_energy_off_peak'].dropna(), 
+             kde = True, 
+             ax = axs[8])
+
+sns.histplot(client_df['forecast_price_energy_peak'].dropna(), 
+             kde = True, 
+             ax = axs[9])
+
+sns.histplot(client_df['forecast_price_pow_off_peak'].dropna(), 
+             kde = True, 
+             ax = axs[10])
+```
+![Histogram of Normalized Data](Normalized_Histogram.png)
+
+The histograms above depict the data distributions of the normalized columns. Compared to the data distributions in part 1, the normalized columns show a distribtution where the crest of the histogram is closer to the center.
+
+**In summary we:**
+* Added 1 to all datapoints in columns with skewed data so that the datapoints can undergo logarithmic transformation.
+* Normalized data by data by calculating the logarithm base 10 for each datapoint in the columns with skewed data.
+* Created histograms for each normalized column to visualize then new data distribution.
+
+## 11. Removing Dependent Variables
+In the previous section, we have discussed the 2 assumptions made by the machine learning model: that the data is independent and that the data is normally distributed. We have normalized the features that contain skewed data. We will now ensure that the data is independent by removing dependent variables in the dataset.
+
+**One indication of dependency between variables is a high correlation coeffecient. Coorelation is the measurement of how related 2 variables are with each other. Variables with a high correlation coefficient indicates that they share a lot of the same information and are more dependant on each other.**
+
+The correlation coefficient is a number between 1 and -1 that indicates the level of correlation. A correlation coefficient of 1 indicates that two variables are either the same variables (the coefficient test is comparing the correlation of one variable with itself) or that two variables are perfectly correlated with each other. A correlation coefficient of 0 indicates that two variables have no correlation with each other. Negative correlation coefficients indicates that two variables are inversely correlated with each other. If one variable increases, the other decreases.
+
+We start the correlation test by creating a dataframe called correlation_matrix. The correlation_matrix dataframe will contain all features in the client_df dataframe except customer ID. We will then use the .corr() command to calculate the correlation coefficient for each 2 varaible combination.
+```
+correl_df = client_df.drop(columns = 'id')
+correlation_matrix = correl_df.corr()
+```
+![Sample of Correlation](Correlation.png)
+
+The table above is a sample of the correlation coefficient for 2 variable combinations. The bolded labels at the top and left side are the names of each variable. The numbers where 2 labels intersect is the correlation coefficient between the variables.
+
+To detect variables with very high correlation coefficients, we can create a mask that covers values that we are not interested in. The data science team determine that variables with correlation coefficients equal to or greater than .98 (positive and negative) are too dependent on each other. We will create a mask that covers correlation coefficients that are between .98 and -.98.
+
