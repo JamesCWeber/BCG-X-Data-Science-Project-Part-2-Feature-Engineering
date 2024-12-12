@@ -446,7 +446,7 @@ We can calculate tenure using the code below. The code will subtract data from t
 ```
 # Use the np.timedelta64() command to perform basic arithmatic with datetime data types.
 # Use the 365, 'D' arguement to convert the difference between 2 dates into number of years.
-# Use the .astype() command to convert a column into an int data type, so that the tenure is in whoole numbers.
+# Use the .astype() command to convert a column into an int data type, so that the tenure is in whole numbers.
 
 client_df['tenure'] = ((client_df['date_end'] - client_df['date_activ'])/np.timedelta64(365, 'D')).astype(int)
 ```
@@ -472,7 +472,7 @@ The client_df dataframe has lost 4 features:
 * Calculated customer tenure by subtracting date_end with date_activ.
 * Removed the 4 columns that contain dates: date_activ, date_emd, date_modif_prod, and date_renewal.
 * The client_df dataframe gains 1 new feature and lost 4 of its original features.
-* The client_df dataframe gains a total of 37 new features.
+* The client_df dataframe gains a total of 33 new features.
 
 ### 8. Transforming Boolean Data
 **Boolean data is a type of data that can only be one of two values.** Examples of Boolean data is true or false, yes or no, on or off. **Machine learning models cannot use Boolean data for input, so we must convert Boolean data into numeric data. This is done by replacing values such as true or false with 1 or 0.**
@@ -566,7 +566,7 @@ The client_df dataframe lost the channel_sales and origin_up columns and gains 8
 * Converted features with nominal, categorical data to dummy variables.
 * Removed dummy variables that have a negligible effect on the predictive power of our machine learning model.
 * The client_df dataframe gains 8 new feature and lost 2 of its original features.
-* The client_df dataframe gains 43 new features.
+* The client_df dataframe gains 39 new features.
 
 ### 10. Normalizing Skewed Data
 **In the part 1 of this project, there were several columns that contain data that are positively skewed.** These columns include cons_12m, has_gas, cons_last_month, imp_cons, and the forecast columns. **The machine learning model that we will be using (Random Forest Model) assume that the data is both independent and normally distributed.**
@@ -770,7 +770,7 @@ The data contains no dependent variables.
 * Removed dependent variables.
 * Created a heatmap to visually determine if the data contains any dependent variables.
 * The client_df dataframe has lost 11 features.
-* The client_df dataframe gains a total of 54 new features.
+* The client_df dataframe gains a total of 28 new features.
 
 ### 12. Exporting the Data into .csv File
 We have completed the feature engineering portion of this project. **The client_df dataframe will be used as input for a Random Forest model in the last part of this project. The Random Forest model will not only predict whether or nor a customer will churn, but also determine what features are influential in a customer's decision to churn.**
