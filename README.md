@@ -65,7 +65,7 @@ Attributes for price data:
 
 **Supervised machine learning is the creation of data models by using labeled datasets to train a model to predict outcomes.**
 
-A copy of this analysis is included in this repository under the file name: James Weber Feature Engineering.ipynb.
+A copy of this feature engineering project is included in this repository under the file name: James Weber Feature Engineering.ipynb.
 
 ### 1. Importing Libraries and Data
 We must first import libraries which contains the commands we need for feature engineering.
