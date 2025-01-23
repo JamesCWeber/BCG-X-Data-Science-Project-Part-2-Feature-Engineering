@@ -12,8 +12,10 @@ PowerCo has expressed concern over their customers leaving them for better offer
 * Python
 * Juypiter Notebook
 * Feature Engineering
+* Data Cleaning
 * Data Manipulation
-* Data Visualization
+* Data Visualization (Histogram, Heat Map)
+* Correlation Matrix
 
 ## Data Sourcing
 This data was provided to me by the BCG X Data Science micro-internship hosted by Forage. A copy of the data is included in this repository under the file name: client_data (1).csv and price_data (1).csv.
